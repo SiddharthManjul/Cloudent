@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  address     String   @unique
+  balance     Float    @default(0)
+  joinedAt    DateTime @default(now())
+  lastActive  DateTime @default(now())
+  
+  // User can be both creator and consumer
+  createdAgents Agent[] @relation("CreatedAgents")
+  employedAgents UserAgent[]
+  
+  @@map("users")
+}
+
+model Agent {
+  id          String   @id @default(cuid())
+  agentName   String
+  description String
+  creator     String   // Wallet address of creator
+  keywords    String[] 
+  usageDetails String
+  dateOfStart DateTime @default(now())
+  
+  // Monitored metrics
+  uptime          Float[]  @default([])  // Array of uptime values
+  avgExecTime     Float[]  @default([])  // Array of execution times
+  requestsPerDay  Int[]    @default([])  // Array of daily requests
+  
+  // Current aggregated values for display
+  currentUptime     Float @default(0)
+  currentAvgExec    Float @default(0)
+  currentRequests   Int   @default(0)
+  
+  // Relationships
+  creatorUser User    @relation("CreatedAgents", fields: [creator], references: [address])
+  proofs      Proof[]
+  users       UserAgent[]
+  
+  @@map("agents")
+}
+
+model Proof {
+  id              String   @id @default(cuid())
+  agentId         String
+  proofId         String   @unique
+  
+  // Arrays for historical data
+  reviews         String[] @default([])  // Array of review hashes
+  agentUptime     Float[]  @default([])  // Historical uptime data
+  avgExecTime     Float[]  @default([])  // Historical execution time data
+  requestsPerDay  Int[]    @default([])  // Historical request data
+  
+  // Proof verification data
+  zkVerifyTxHash    String?
+  horizenTxHash     String?
+  aggregationId     Int?
+  verified          Boolean  @default(false)
+  verifiedAt        DateTime?
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relationships
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  @@map("proofs")
+}
+
+model UserAgent {
+  id       String @id @default(cuid())
+  userId   String
+  agentId  String
+  startedAt DateTime @default(now())
+  
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, agentId])
+  @@map("user_agents")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  agentId   String
+  userId    String
+  content   String
+  rating    Int      // 1-5 scale
+  hash      String   // keccak256(keccak256(content))
+  createdAt DateTime @default(now())
+  
+  @@map("reviews")
+}
+
+model MonitoringLog {
+  id              String   @id @default(cuid())
+  agentId         String
+  uptime          Float
+  avgExecTime     Float
+  requestsCount   Int
+  timestamp       DateTime @default(now())
+  
+  @@map("monitoring_logs")
+}
