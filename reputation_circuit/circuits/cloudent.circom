@@ -3,7 +3,6 @@ pragma circom 2.1.6;
 include "poseidon.circom";
 include "comparators.circom";
 
-// Multiplexer for selecting between two values
 template Mux1() {
     signal input c[2];
     signal input s;
@@ -12,49 +11,39 @@ template Mux1() {
     out <== c[0] + s * (c[1] - c[0]);
 }
 
-// Fixed-point division for computing average rating
 template FixedPointAverage() {
     signal input sum;
     signal input count;
-    signal input avgScaled; // This becomes an input that prover provides
-    signal output validAverage; // Output 1 if avgScaled is correct, 0 otherwise
+    signal input avgScaled;
+    signal output validAverage;
     
-    // Input validation - count must be positive
     component countPositive = GreaterThan(8);
     countPositive.in[0] <== count;
     countPositive.in[1] <== 0;
     countPositive.out === 1;
     
-    // Compute (sum * 100) for comparison
     signal scaledSum <== sum * 100;
     
-    // Verify that avgScaled * count + remainder = scaledSum
     signal remainder;
     remainder <== scaledSum - avgScaled * count;
-    
-    // Remainder must be less than count (proper division)
     component remainderCheck = LessThan(16);
     remainderCheck.in[0] <== remainder;
     remainderCheck.in[1] <== count;
     
-    // Remainder must be non-negative
     component remainderPositive = GreaterEqThan(16);
     remainderPositive.in[0] <== remainder;
     remainderPositive.in[1] <== 0;
     
-    // avgScaled is valid if both remainder conditions are met
     validAverage <== remainderCheck.out * remainderPositive.out;
-    validAverage === 1; // Enforce that the average is valid
+    validAverage === 1; 
 }
 
-// Rating validation for a single rating
 template SingleRatingValidator() {
     signal input rating;
-    signal input isActive; // 1 if this rating counts, 0 if padding
+    signal input isActive; 
     signal output isValid;
     signal output contributionToSum;
     
-    // Check rating is between 1-5
     component minCheck = GreaterEqThan(4);
     minCheck.in[0] <== rating;
     minCheck.in[1] <== 1;
@@ -65,26 +54,20 @@ template SingleRatingValidator() {
     
     signal validBounds <== minCheck.out * maxCheck.out;
     
-    // If inactive, we allow any rating (including 0 for padding)
-    // If active, rating must be valid (1-5)
     isValid <== 1 - isActive + isActive * validBounds;
     
-    // Break down non-quadratic constraint into quadratic ones
     signal activeAndValid <== isActive * validBounds;
     contributionToSum <== rating * activeAndValid;
     
-    // Enforce: active ratings must be valid
     isActive * (1 - validBounds) === 0;
 }
 
-// Validates array of ratings and computes sum
 template RatingValidator(maxRatings) {
     signal input ratings[maxRatings];
     signal input numRatings;
     signal output isValid;
     signal output sum;
-    
-    // Validate numRatings is within bounds
+
     component numRatingsCheck = LessEqThan(8);
     numRatingsCheck.in[0] <== numRatings;
     numRatingsCheck.in[1] <== maxRatings;
@@ -93,12 +76,10 @@ template RatingValidator(maxRatings) {
     numRatingsPositive.in[0] <== numRatings;
     numRatingsPositive.in[1] <== 0;
     
-    // Declare all components in initial scope
     component ratingValidators[maxRatings];
     component withinCountChecks[maxRatings];
     signal ratingSum[maxRatings + 1];
     
-    // Initialize components
     for (var i = 0; i < maxRatings; i++) {
         ratingValidators[i] = SingleRatingValidator();
         withinCountChecks[i] = LessThan(8);
@@ -106,19 +87,15 @@ template RatingValidator(maxRatings) {
     
     ratingSum[0] <== 0;
     
-    // Process each rating
     for (var i = 0; i < maxRatings; i++) {
         ratingValidators[i].rating <== ratings[i];
         
-        // Check if this rating is within the active count
         withinCountChecks[i].in[0] <== i;
         withinCountChecks[i].in[1] <== numRatings;
         ratingValidators[i].isActive <== withinCountChecks[i].out;
         
-        // Accumulate sum
         ratingSum[i + 1] <== ratingSum[i] + ratingValidators[i].contributionToSum;
         
-        // All individual ratings must be valid
         ratingValidators[i].isValid === 1;
     }
     
@@ -126,12 +103,10 @@ template RatingValidator(maxRatings) {
     isValid <== numRatingsCheck.out * numRatingsPositive.out;
 }
 
-// Creates Merkle root from review hashes
 template ReviewCommitment(numReviews) {
     signal input reviewHashes[numReviews];
     signal output reviewRoot;
-    
-    // Use Poseidon hash to create commitment to all reviews
+
     component hasher = Poseidon(numReviews);
     for (var i = 0; i < numReviews; i++) {
         hasher.inputs[i] <== reviewHashes[i];
@@ -140,10 +115,8 @@ template ReviewCommitment(numReviews) {
     reviewRoot <== hasher.out;
 }
 
-// Main AI Agent Reputation Circuit
+
 template AIAgentReputation(maxRatings, maxReviews) {
-    // ========== INPUT SIGNALS ==========
-    // All inputs are private by default
     signal input ratings[maxRatings];
     signal input reviewHashes[maxReviews];
     signal input privateUptimeBps;
@@ -157,9 +130,8 @@ template AIAgentReputation(maxRatings, maxReviews) {
     signal input claimedAvgExecTimeMs;
     signal input claimedReqsPerDay;
     signal input claimedDeploymentCount;
-    signal input avgScaled; // Prover provides the computed average
+    signal input avgScaled; 
     
-    // ========== PUBLIC OUTPUTS ==========
     signal output avgRatingScaled;
     signal output verifiedNumRatings;
     signal output reviewRoot;
@@ -170,7 +142,6 @@ template AIAgentReputation(maxRatings, maxReviews) {
     signal output verifiedAgentId;
     signal output verifiedEpochDay;
 
-    // ========== COMPONENT DECLARATIONS ==========
     component ratingValidator = RatingValidator(maxRatings);
     component avgComputer = FixedPointAverage();
     component reviewCommitment = ReviewCommitment(maxReviews);
@@ -183,29 +154,22 @@ template AIAgentReputation(maxRatings, maxReviews) {
     component deployCheck = LessEqThan(16);
     component deployPositive = GreaterEqThan(16);
     
-    // ========== RATING PROCESSING ==========
     for (var i = 0; i < maxRatings; i++) {
         ratingValidator.ratings[i] <== ratings[i];
     }
     ratingValidator.numRatings <== numRatings;
     
-    // Ensure rating validation passes
     ratingValidator.isValid === 1;
     
-    // Compute average rating (scaled by 100)
     avgComputer.sum <== ratingValidator.sum;
     avgComputer.count <== numRatings;
     avgComputer.avgScaled <== avgScaled;
     
-    // ========== METRIC VERIFICATION ==========
-    // Verify private inputs match public claims
     privateUptimeBps === claimedUptimeBps;
     privateAvgExecTimeMs === claimedAvgExecTimeMs;
     privateReqsPerDay === claimedReqsPerDay;
     privateDeploymentCount === claimedDeploymentCount;
     
-    // ========== BOUNDS VALIDATION ==========
-    // Uptime must be 0-10000 basis points (0-100%)
     uptimeCheck.in[0] <== privateUptimeBps;
     uptimeCheck.in[1] <== 10000;
     uptimeCheck.out === 1;
@@ -214,7 +178,6 @@ template AIAgentReputation(maxRatings, maxReviews) {
     uptimePositive.in[1] <== 0;
     uptimePositive.out === 1;
     
-    // Execution time must be reasonable (1-10000ms)
     execTimeCheck.in[0] <== privateAvgExecTimeMs;
     execTimeCheck.in[1] <== 10000;
     execTimeCheck.out === 1;
@@ -223,7 +186,6 @@ template AIAgentReputation(maxRatings, maxReviews) {
     execTimePositive.in[1] <== 1;
     execTimePositive.out === 1;
     
-    // Requests per day must be reasonable (0-1M)
     reqsCheck.in[0] <== privateReqsPerDay;
     reqsCheck.in[1] <== 1000000;
     reqsCheck.out === 1;
@@ -232,7 +194,6 @@ template AIAgentReputation(maxRatings, maxReviews) {
     reqsPositive.in[1] <== 0;
     reqsPositive.out === 1;
     
-    // Deployment count must be reasonable (0-1000)
     deployCheck.in[0] <== privateDeploymentCount;
     deployCheck.in[1] <== 1000;
     deployCheck.out === 1;
@@ -241,12 +202,10 @@ template AIAgentReputation(maxRatings, maxReviews) {
     deployPositive.in[1] <== 0;
     deployPositive.out === 1;
     
-    // ========== REVIEW COMMITMENT ==========
     for (var i = 0; i < maxReviews; i++) {
         reviewCommitment.reviewHashes[i] <== reviewHashes[i];
     }
     
-    // ========== OUTPUT ASSIGNMENT ==========
     avgRatingScaled <== avgScaled;
     verifiedNumRatings <== numRatings;
     reviewRoot <== reviewCommitment.reviewRoot;
@@ -257,7 +216,6 @@ template AIAgentReputation(maxRatings, maxReviews) {
     verifiedAgentId <== agentId;
     verifiedEpochDay <== epochDay;
     
-    // ========== DEBUG LOGS ==========
     log("Agent ID:", agentId);
     log("Epoch Day:", epochDay);
     log("Number of ratings:", numRatings);
@@ -270,9 +228,6 @@ template AIAgentReputation(maxRatings, maxReviews) {
     log("Review root hash:", reviewCommitment.reviewRoot);
 }
 
-// Circuit instantiation with public signals specified
-// Public inputs: agentId, epochDay, numRatings, and all claimed metrics
-// Private inputs: ratings, reviewHashes, and all private metrics
 component main { 
     public [ 
         agentId, 
