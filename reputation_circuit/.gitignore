@@ -11,6 +11,7 @@ node_modules/
 .env.development
 .env.test
 .env.production
+<<<<<<< HEAD
 
 # Build outputs
 dist/
@@ -52,3 +53,9 @@ lerna-debug.log*
 # Temporary files
 .tmp/
 .cache/
+=======
+.env.local
+.env.development.local
+
+/dist
+>>>>>>> c52babfe6cea1b1a206cdf382b59789a6ef42a7d
