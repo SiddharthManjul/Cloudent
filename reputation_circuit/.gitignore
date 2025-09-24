@@ -23,6 +23,7 @@ proof.json
 public.json
 calldata.txt
 zkverify-vkey.json
+aggregation.json
 
 # Powers of Tau files (large ceremony files)
 ptau/

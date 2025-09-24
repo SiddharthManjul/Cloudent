@@ -96,9 +96,9 @@ export class CloudentVerifier {
   async verifyWithZkVerify(
     proof: any, 
     publicSignals: string[], 
-    chainId: number = 11155111,
-    waitForFinalization: boolean = true
-  ): Promise<{ success: boolean; jobId?: string; txHash?: string; blockHash?: string }> {
+    chainId: number = 845320009,
+    waitForAggregation: boolean = true
+  ): Promise<{ success: boolean; jobId?: string; txHash?: string; blockHash?: string; aggregationId?: number; aggregationDetails?: any }> {
     if (!this.apiKey) {
       throw new Error("API_KEY is required for zkVerify verification");
     }
@@ -146,16 +146,16 @@ export class CloudentVerifier {
       console.log("✅ Optimistic verification successful!");
       console.log("🔍 Job ID:", submitResponse.data.jobId);
 
-      if (!waitForFinalization) {
+      if (!waitForAggregation) {
         return { 
           success: true, 
           jobId: submitResponse.data.jobId 
         };
       }
 
-      // Wait for finalization
-      console.log("⏳ Waiting for proof to be finalized on zkVerify...");
-      return await this.waitForFinalization(submitResponse.data.jobId);
+      // Wait for aggregation
+      console.log("⏳ Waiting for proof to be aggregated on zkVerify...");
+      return await this.waitForAggregation(submitResponse.data.jobId);
 
     } catch (error: any) {
       console.error("❌ Error verifying with zkVerify:", error.response?.data || error.message);
@@ -164,9 +164,9 @@ export class CloudentVerifier {
   }
 
   /**
-   * Wait for proof verification to be finalized
+   * Wait for proof verification to be aggregated
    */
-  private async waitForFinalization(jobId: string): Promise<{ success: boolean; jobId: string; txHash?: string; blockHash?: string }> {
+  private async waitForAggregation(jobId: string): Promise<{ success: boolean; jobId: string; txHash?: string; blockHash?: string; aggregationId?: number; aggregationDetails?: any }> {
     while (true) {
       try {
         const statusResponse = await axios.get(`${this.apiUrl}/job-status/${this.apiKey}/${jobId}`);
@@ -174,25 +174,56 @@ export class CloudentVerifier {
         
         console.log("📈 Job status:", status);
         
-        if (status === "Finalized") {
-          console.log("🎉 Proof verification finalized on zkVerify!");
-          console.log("📜 Transaction hash:", statusResponse.data.txHash);
-          console.log("🔗 Block hash:", statusResponse.data.blockHash);
+        if (status === "Aggregated") {
+          console.log("🎉 Proof successfully aggregated on zkVerify!");
+          
+          // zkVerify transaction details
+          console.log("\n🔗 zkVerify Blockchain:");
+          console.log("  📜 Transaction hash:", statusResponse.data.txHash);
+          console.log("  🔗 Block hash:", statusResponse.data.blockHash);
+          console.log("  🔢 Aggregation ID:", statusResponse.data.aggregationId);
+          console.log("  📋 Statement:", statusResponse.data.statement);
+          
+          // Horizen testnet transaction details (from aggregationDetails)
+          const aggregationDetails = statusResponse.data.aggregationDetails;
+          if (aggregationDetails && aggregationDetails.receipt) {
+            console.log("\n🌐 Horizen Testnet:");
+            console.log("  📜 Receipt hash:", aggregationDetails.receipt);
+            console.log("  🔗 Receipt block hash:", aggregationDetails.receiptBlockHash);
+            console.log("  🌳 Merkle root:", aggregationDetails.root);
+            console.log("  🍃 Leaf:", aggregationDetails.leaf);
+            console.log("  📍 Leaf index:", aggregationDetails.leafIndex);
+            console.log("  📊 Number of leaves:", aggregationDetails.numberOfLeaves);
+          }
+          
+          // Save aggregation details to file
+          const aggregationData = {
+            ...aggregationDetails,
+            aggregationId: statusResponse.data.aggregationId,
+            statement: statusResponse.data.statement,
+            txHash: statusResponse.data.txHash,
+            blockHash: statusResponse.data.blockHash
+          };
+          
+          fs.writeFileSync("aggregation.json", JSON.stringify(aggregationData, null, 2));
+          console.log("\n💾 Aggregation details saved to aggregation.json");
           
           return {
             success: true,
             jobId: jobId,
             txHash: statusResponse.data.txHash,
-            blockHash: statusResponse.data.blockHash
+            blockHash: statusResponse.data.blockHash,
+            aggregationId: statusResponse.data.aggregationId,
+            aggregationDetails: statusResponse.data.aggregationDetails
           };
         } else if (status === "Failed") {
           console.error("❌ Proof verification failed on zkVerify");
           return { success: false, jobId: jobId };
         }
         
-        // Wait 5 seconds before checking again
-        console.log("⏳ Waiting 5 seconds before checking status again...");
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        // Wait 20 seconds before checking again (aggregation takes longer)
+        console.log("⏳ Waiting 20 seconds before checking status again...");
+        await new Promise(resolve => setTimeout(resolve, 20000));
         
       } catch (error: any) {
         console.error("❌ Error checking job status:", error.response?.data || error.message);
@@ -202,21 +233,21 @@ export class CloudentVerifier {
   }
 
   /**
-   * Verify a proof from files using zkVerify
+   * Verify a proof from files using zkVerify with aggregation
    */
   async verifyFromFilesWithZkVerify(
     proofPath: string = "./proof.json",
     publicPath: string = "./public.json",
-    chainId: number = 11155111,
-    waitForFinalization: boolean = true
-  ): Promise<{ success: boolean; jobId?: string; txHash?: string; blockHash?: string }> {
+    chainId: number = 845320009,
+    waitForAggregation: boolean = true
+  ): Promise<{ success: boolean; jobId?: string; txHash?: string; blockHash?: string; aggregationId?: number; aggregationDetails?: any }> {
     try {
       console.log("🔄 Loading proof and public signals from files for zkVerify verification...");
       
       const proof = JSON.parse(fs.readFileSync(proofPath, "utf8"));
       const publicSignals = JSON.parse(fs.readFileSync(publicPath, "utf8"));
       
-      return await this.verifyWithZkVerify(proof, publicSignals, chainId, waitForFinalization);
+      return await this.verifyWithZkVerify(proof, publicSignals, chainId, waitForAggregation);
     } catch (error: any) {
       console.error("❌ Error loading files for zkVerify verification:", error.message);
       return { success: false };
@@ -323,21 +354,29 @@ async function main() {
       case "zkverify":
         const zkProofFile = process.argv[3] || "./proof.json";
         const zkPublicFile = process.argv[4] || "./public.json";
-        const chainId = process.argv[5] ? parseInt(process.argv[5]) : 11155111;
-        const waitForFinalization = process.argv[6] !== "false";
+        const chainId = process.argv[5] ? parseInt(process.argv[5]) : 845320009;
+        const waitForAggregation = process.argv[6] !== "false";
         
         result = await verifier.verifyFromFilesWithZkVerify(
           zkProofFile, 
           zkPublicFile, 
           chainId, 
-          waitForFinalization
+          waitForAggregation
         );
         isValid = result.success;
         
         if (result.success && result.txHash) {
           console.log("\n🎉 zkVerify verification completed successfully!");
-          console.log(`📜 Transaction: ${result.txHash}`);
-          console.log(`🔗 Block: ${result.blockHash}`);
+          console.log("\n📊 Summary:");
+          console.log(`  🔗 zkVerify Transaction: ${result.txHash}`);
+          console.log(`  🔗 zkVerify Block: ${result.blockHash}`);
+          
+          if (result.aggregationId && result.aggregationDetails) {
+            console.log(`  🔢 Aggregation ID: ${result.aggregationId}`);
+            console.log(`  🌐 Horizen Receipt: ${result.aggregationDetails.receipt}`);
+            console.log(`  🌐 Horizen Block: ${result.aggregationDetails.receiptBlockHash}`);
+            console.log("  💾 Aggregation details saved to aggregation.json");
+          }
         }
         break;
         
@@ -355,12 +394,16 @@ async function main() {
         console.log("Usage:");
         console.log("  npm run verify                         # Verify locally from proof.json and public.json");
         console.log("  npm run verify files [proof] [public]  # Verify locally from custom files");
-        console.log("  npm run verify zkverify [proof] [public] [chainId] [wait] # Verify on zkVerify");
+        console.log("  npm run verify zkverify [proof] [public] [chainId] [wait] # Verify on zkVerify with aggregation");
         console.log("  npm run verify calldata [file]         # Verify from calldata file");
         console.log("");
         console.log("zkVerify options:");
-        console.log("  chainId: Target chain ID (default: 11155111 for Sepolia)");
-        console.log("  wait: Whether to wait for finalization (default: true, set to 'false' to skip)");
+        console.log("  chainId: Target chain ID (default: 845320009 for Horizen testnet)");
+        console.log("  wait: Whether to wait for aggregation (default: true, set to 'false' to skip)");
+        console.log("");
+        console.log("Horizen testnet details:");
+        console.log("  Chain ID: 845320009");
+        console.log("  Proxy Contract: 0x201B6ba8EA862d83AAA03CFbaC962890c7a4d195");
         process.exit(1);
     }
     
