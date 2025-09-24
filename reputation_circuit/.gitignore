@@ -1,6 +1,9 @@
-node_modules
+# Dependencies
+node_modules/
+.pnpm-debug.log*
+
+# Environment variables
 .env
-.DS_Store
 .env.local
 .env.development.local
 .env.test.local
@@ -8,5 +11,44 @@ node_modules
 .env.development
 .env.test
 .env.production
-.env.local
-.env.development.local
+
+# Build outputs
+dist/
+build/
+*.wtns
+
+# Generated files
+proof.json
+public.json
+calldata.txt
+zkverify-vkey.json
+
+# Powers of Tau files (large ceremony files)
+ptau/
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Temporary files
+.tmp/
+.cache/
