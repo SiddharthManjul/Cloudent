@@ -19,9 +19,9 @@ build/
 *.wtns
 
 # Generated files
-proof.json
-public.json
-calldata.txt
+proof*.json
+public*.json
+calldata*.txt
 zkverify-vkey.json
 aggregation.json
 

@@ -147,6 +147,15 @@ async function main() {
     // Load input
     const input: CircuitInput = JSON.parse(fs.readFileSync(inputFile, "utf8"));
     
+    // Generate output filenames based on input filename
+    const inputBaseName = path.basename(inputFile, '.json');
+    const proofFile = inputBaseName === 'input' ? './proof.json' : `./proof${inputBaseName.replace('input', '')}.json`;
+    const publicFile = inputBaseName === 'input' ? './public.json' : `./public${inputBaseName.replace('input', '')}.json`;
+    const calldataFile = inputBaseName === 'input' ? './calldata.txt' : `./calldata${inputBaseName.replace('input', '')}.txt`;
+    
+    console.log(`📂 Input file: ${inputFile}`);
+    console.log(`📂 Output files will be: ${proofFile}, ${publicFile}, ${calldataFile}`);
+    
     // Initialize prover
     const prover = new CloudentProver();
     
@@ -154,7 +163,7 @@ async function main() {
     const { proof, publicSignals } = await prover.generateProof(input);
     
     // Save proof files
-    await prover.saveProofToFiles(proof, publicSignals);
+    await prover.saveProofToFiles(proof, publicSignals, proofFile, publicFile);
     
     // Verify proof
     const isValid = await prover.verifyProof(proof, publicSignals);
@@ -168,8 +177,8 @@ async function main() {
       console.log(calldata);
       
       // Save calldata
-      fs.writeFileSync("./calldata.txt", calldata);
-      console.log("💾 Calldata saved to: ./calldata.txt");
+      fs.writeFileSync(calldataFile, calldata);
+      console.log(`💾 Calldata saved to: ${calldataFile}`);
     }
     
   } catch (error) {
