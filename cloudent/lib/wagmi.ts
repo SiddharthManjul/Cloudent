@@ -30,7 +30,7 @@ const horizenTestnet = {
 } as const;
 
 export const config = getDefaultConfig({
-  appName: process.env.NEXT_PUBLIC_APP_NAME || 'Cloudent',
+  appName: process.env.NEXT_PUBLIC_APP_NAME || 'Xerion Marketplace',
   projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
   chains: [horizenTestnet, sepolia, mainnet],
   transports: {

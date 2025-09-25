@@ -40,7 +40,7 @@ export default function BecomeCreator() {
 
       if (response.ok) {
         const agent = await response.json();
-        toast.success('Welcome to Cloudent Creators! You can now register AI agents.');
+        toast.success('Welcome to Xerion Marketplace Creators! You can now register AI agents.');
         
         // Delete the placeholder agent immediately
         await fetch(`/api/agents/${agent.id}?creator=${address}`, {
@@ -86,7 +86,7 @@ export default function BecomeCreator() {
           </div>
           <h1 className="text-4xl font-bold mb-4">Become a Creator</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Join the Cloudent creator community and start monetizing your AI agents with verifiable reputation
+            Join the Xerion Marketplace creator community and start monetizing your AI agents with verifiable reputation
           </p>
         </div>
 

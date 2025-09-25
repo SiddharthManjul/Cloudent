@@ -1,0 +1,17 @@
+{
+  "receipt": "0x0ffc4d948be8cc1f85fb9858d396312ce9bcea3c6c51138e3db4771738615fba",
+  "receiptBlockHash": "0xfeea182d9cc46c0e683265ef08daaead75f8d2f0b9ba6c53b0832522f1db5204",
+  "root": "0x0ffc4d948be8cc1f85fb9858d396312ce9bcea3c6c51138e3db4771738615fba",
+  "leaf": "0x3ce6c6ab7dc2089c8dfa1f508a0fc57f0fdfadbd9df64678ac445cd741c3b4fb",
+  "leafIndex": 0,
+  "numberOfLeaves": 8,
+  "merkleProof": [
+    "0x554fd1c18f3da77ad767a2458789d5f6617b8e71f3c192ef082f553260736c35",
+    "0xa1f562ecd3d5233e38adcebf816dbd8fbfeeae795ac76437dfc507ae33e224e1",
+    "0xd8cb026759cbb7ab71e1f0938d7f58625afa33e1329fa71d803e890d4819d970"
+  ],
+  "aggregationId": 8200,
+  "statement": "0x3ce6c6ab7dc2089c8dfa1f508a0fc57f0fdfadbd9df64678ac445cd741c3b4fb",
+  "txHash": "0x2d899ad03c683315c52570410506557954a27f7d19591e371d441fb1e53677c9",
+  "blockHash": "0x0cc64e98c648c01a5a8abbbb83e5fa0375a7be26ca9cb724da49b8a489400018"
+}

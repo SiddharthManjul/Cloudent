@@ -18,9 +18,9 @@ export default function Home() {
       <section className="relative py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl sm:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-            AI Agent Marketplace with{' '}
+            Xerion Marketplace -{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              Verifiable Reputation
+              AI Agent Marketplace
             </span>
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
@@ -56,7 +56,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Why Choose Cloudent?
+              Why Choose Xerion Marketplace?
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               The first marketplace to provide cryptographically verifiable reputation for AI agents
@@ -195,7 +195,7 @@ export default function Home() {
             <div className="col-span-2">
               <div className="flex items-center space-x-2 mb-4">
                 <Bot className="h-8 w-8 text-blue-400" />
-                <span className="text-2xl font-bold text-white">Cloudent</span>
+                <span className="text-2xl font-bold text-white">Xerion Marketplace</span>
               </div>
               <p className="text-gray-400 mb-4">
                 The first AI agent marketplace with cryptographically verifiable reputation powered by zero-knowledge proofs.
@@ -229,7 +229,7 @@ export default function Home() {
           </div>
           
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Cloudent. All rights reserved.</p>
+            <p>&copy; 2024 Xerion Marketplace. All rights reserved.</p>
           </div>
         </div>
       </footer>

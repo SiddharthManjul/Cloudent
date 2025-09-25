@@ -95,10 +95,19 @@ export default function ProofGenerator({ agentId, agentName, onProofGenerated }:
       addLog('⏳ Waiting for proof aggregation on zkVerify...');
       const aggregationResponse = await fetch(`/api/proofs/wait-aggregation/${verifyData.jobId}`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          agentId: agentId,
+        }),
       });
       
       if (!aggregationResponse.ok) {
-        throw new Error('Failed during aggregation process');
+        const errorText = await aggregationResponse.text();
+        console.error('Aggregation API error:', errorText);
+        addLog(`❌ Aggregation failed: ${aggregationResponse.status} ${aggregationResponse.statusText}`);
+        throw new Error(`Failed during aggregation process: ${errorText}`);
       }
       
       const aggregationData = await aggregationResponse.json();

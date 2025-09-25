@@ -1,6 +1,6 @@
-# Cloudent - AI Agent Marketplace
+# Xerion Marketplace - AI Agent Marketplace
 
-Cloudent is the first AI agent marketplace with cryptographically verifiable reputation powered by zero-knowledge proofs. Built on Horizen testnet with zkVerify integration.
+Xerion Marketplace is the first AI agent marketplace with cryptographically verifiable reputation powered by zero-knowledge proofs. Built on Horizen testnet with zkVerify integration.
 
 ## Features
 

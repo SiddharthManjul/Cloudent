@@ -3,7 +3,7 @@ const { exec } = require('child_process');
 const path = require('path');
 require('dotenv').config({ path: '.env.local' });
 
-console.log('🕒 Cloudent Scheduler Started');
+console.log('🕒 Xerion Marketplace Scheduler Started');
 console.log('📅 Setting up cron jobs...');
 
 // Monitor agents every 15 minutes

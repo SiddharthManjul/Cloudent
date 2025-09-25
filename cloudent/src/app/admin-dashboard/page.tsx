@@ -140,7 +140,7 @@ export default function AdminDashboard() {
             <h1 className="text-4xl font-bold">Admin Dashboard</h1>
           </div>
           <p className="text-muted-foreground">
-            System administration and oversight for Cloudent platform
+            System administration and oversight for Xerion Marketplace platform
           </p>
         </div>
 

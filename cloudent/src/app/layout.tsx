@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cloudent - AI Agent Marketplace",
+  title: "Xerion Marketplace - AI Agent Marketplace",
   description: "AI Agent Marketplace with Verifiable Reputation",
 };
 

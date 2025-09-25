@@ -327,7 +327,7 @@ export default function UserDashboard() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="text-sm">
-                    <p className="font-medium">Joined Cloudent</p>
+                    <p className="font-medium">Joined Xerion Marketplace</p>
                     <p className="text-muted-foreground">Today</p>
                   </div>
                   {employedAgents.length > 0 && (

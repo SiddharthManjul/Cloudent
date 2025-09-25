@@ -51,7 +51,7 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <Bot className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-primary">Cloudent</span>
+                <span className="text-2xl font-bold text-primary">Xerion</span>
           </Link>
 
           {/* Navigation */}
