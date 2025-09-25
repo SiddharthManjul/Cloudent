@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
-import { hashReview, generateProofId, isValidAddress } from '../../../../lib/utils';
+import { isValidAddress } from '../../../../lib/utils';
 
 // GET /api/agents - Get all agents
 export async function GET(request: NextRequest) {

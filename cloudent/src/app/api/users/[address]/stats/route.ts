@@ -4,12 +4,13 @@ import { prisma } from '../../../../../../lib/db';
 // GET /api/users/[address]/stats - Get user statistics
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   try {
+    const { address } = await params;
     // Get user with employed agents
     const user = await prisma.user.findUnique({
-      where: { address: params.address },
+      where: { address },
       include: {
         employedAgents: true,
       },
@@ -27,7 +28,7 @@ export async function GET(
 
     // Get user's reviews
     const reviews = await prisma.review.findMany({
-      where: { userId: params.address },
+      where: { userId: user.id },
     });
 
     // Calculate stats

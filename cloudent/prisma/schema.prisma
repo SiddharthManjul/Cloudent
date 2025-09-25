@@ -15,6 +15,7 @@ model User {
   id          String   @id @default(cuid())
   address     String   @unique
   balance     Float    @default(0)
+  isAdmin     Boolean  @default(false)
   joinedAt    DateTime @default(now())
   lastActive  DateTime @default(now())
   

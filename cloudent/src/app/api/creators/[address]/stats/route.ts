@@ -4,12 +4,13 @@ import { prisma } from '../../../../../../lib/db';
 // GET /api/creators/[address]/stats - Get creator statistics
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   try {
+    const { address } = await params;
     // Get creator's agents
     const agents = await prisma.agent.findMany({
-      where: { creator: params.address },
+      where: { creator: address },
       include: {
         users: true,
         _count: {

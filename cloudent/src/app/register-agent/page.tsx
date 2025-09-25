@@ -225,7 +225,7 @@ export default function RegisterAgent() {
                   <strong>Wallet Address:</strong> {address}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  This will be recorded as the creator and you'll receive earnings from your agent.
+                  This will be recorded as the creator and you&apos;ll receive earnings from your agent.
                 </p>
               </div>
 

@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { Header } from '../../../components/Header';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import Link from 'next/link';
 import { 
-  Bot, Clock, Zap, TrendingUp, Shield, Wallet, 
-  Calendar, Activity, ExternalLink, Plus, Edit, Trash2,
+  Bot, Clock, Zap, Shield, Wallet, 
+  Calendar, ExternalLink, Plus, Edit, Trash2,
   DollarSign, Users, Star
 } from 'lucide-react';
 import { formatAddress, formatDuration } from '../../../lib/utils';
@@ -52,13 +52,7 @@ export default function CreatorDashboard() {
   const [createdAgents, setCreatedAgents] = useState<CreatedAgent[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (isConnected && address) {
-      fetchCreatorData();
-    }
-  }, [isConnected, address]);
-
-  const fetchCreatorData = async () => {
+  const fetchCreatorData = useCallback(async () => {
     try {
       // Fetch creator's agents
       const agentsResponse = await fetch(`/api/agents?creator=${address}`);
@@ -78,7 +72,13 @@ export default function CreatorDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [address]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      fetchCreatorData();
+    }
+  }, [isConnected, address, fetchCreatorData]);
 
   const handleDeleteAgent = async (agentId: string) => {
     if (!confirm('Are you sure you want to delete this agent? This action cannot be undone.')) {
@@ -301,7 +301,7 @@ export default function CreatorDashboard() {
                               </span>
                               {latestProof.horizenTxHash && (
                                 <a
-                                  href={`https://gobi.explorer.horizenlabs.io/tx/${latestProof.horizenTxHash}`}
+                                  href={`https://horizen-explorer-testnet.appchain.base.org/${latestProof.horizenTxHash}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-green-600 hover:text-green-800"

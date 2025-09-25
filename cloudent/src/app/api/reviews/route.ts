@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../lib/db';
-import { hashReview, isValidAddress } from '../../../../lib/utils';
+import { hashReview, isValidAddress, generateProofId } from '../../../../lib/utils';
 
 // GET /api/reviews - Get reviews for an agent
 export async function GET(request: NextRequest) {

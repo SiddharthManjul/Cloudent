@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { Header } from '../../../components/Header';
 import { Button } from '../../../components/ui/button';
@@ -51,13 +51,7 @@ export default function UserDashboard() {
   const [employedAgents, setEmployedAgents] = useState<EmployedAgent[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (isConnected && address) {
-      fetchUserData();
-    }
-  }, [isConnected, address]);
-
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       // Fetch user's employed agents
       const agentsResponse = await fetch(`/api/users/${address}/agents`);
@@ -77,7 +71,13 @@ export default function UserDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [address]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      fetchUserData();
+    }
+  }, [isConnected, address, fetchUserData]);
 
   if (!isConnected) {
     return (
@@ -178,7 +178,7 @@ export default function UserDashboard() {
                   Your Employed Agents
                 </CardTitle>
                 <CardDescription>
-                  AI agents you're currently using
+                  AI agents you&apos;re currently using
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -248,7 +248,7 @@ export default function UserDashboard() {
                               </span>
                               {latestProof.horizenTxHash && (
                                 <a
-                                  href={`https://gobi.explorer.horizenlabs.io/tx/${latestProof.horizenTxHash}`}
+                                  href={`https://horizen-explorer-testnet.appchain.base.org/${latestProof.horizenTxHash}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-green-600 hover:text-green-800"

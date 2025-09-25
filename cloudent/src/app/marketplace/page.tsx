@@ -210,7 +210,7 @@ export default function Marketplace() {
                         </CardDescription>
                       </div>
                       {isVerified && (
-                        <Shield className="h-5 w-5 text-green-600" title="Verified Agent" />
+                        <Shield className="h-5 w-5 text-green-600" />
                       )}
                     </div>
                   </CardHeader>
@@ -264,7 +264,7 @@ export default function Marketplace() {
                           </span>
                           {latestProof.horizenTxHash && (
                             <a
-                              href={`https://gobi.explorer.horizenlabs.io/tx/${latestProof.horizenTxHash}`}
+                              href={`https://horizen-explorer-testnet.appchain.base.org/${latestProof.horizenTxHash}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-green-600 hover:text-green-800"

@@ -4,13 +4,14 @@ import { prisma } from '../../../../../../lib/db';
 // GET /api/users/[address]/agents - Get user's employed agents
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   try {
+    const { address } = await params;
     const userAgents = await prisma.userAgent.findMany({
       where: {
         user: {
-          address: params.address,
+          address,
         },
       },
       include: {

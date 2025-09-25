@@ -1,18 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import { Header } from '../../../../components/Header';
 import { Button } from '../../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
-import { Input } from '../../../../components/ui/input';
 import { Textarea } from '../../../../components/ui/textarea';
 import { 
   Bot, Clock, Zap, TrendingUp, Shield, ExternalLink, Star, 
-  Calendar, User, MessageCircle, Activity, BarChart3
+  Calendar, User, MessageCircle, BarChart3
 } from 'lucide-react';
-import { formatAddress, formatDuration, hashReview } from '../../../../lib/utils';
+import { formatAddress, formatDuration } from '../../../../lib/utils';
+import ProofGenerator from '../../../../components/ProofGenerator';
 import toast from 'react-hot-toast';
 
 interface AgentDetails {
@@ -70,15 +70,11 @@ export default function AgentPage() {
     content: '',
     rating: 5,
   });
+  const [showProofGenerator, setShowProofGenerator] = useState(false);
+  const [isDeployLoading, setIsDeployLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  useEffect(() => {
-    if (params.id) {
-      fetchAgent();
-      fetchReviews();
-    }
-  }, [params.id]);
-
-  const fetchAgent = async () => {
+  const fetchAgent = useCallback(async () => {
     try {
       const response = await fetch(`/api/agents/${params.id}`);
       if (response.ok) {
@@ -93,9 +89,9 @@ export default function AgentPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       const response = await fetch(`/api/reviews?agentId=${params.id}`);
       if (response.ok) {
@@ -105,7 +101,26 @@ export default function AgentPage() {
     } catch (error) {
       console.error('Error fetching reviews:', error);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    if (params.id) {
+      fetchAgent();
+      fetchReviews();
+    }
+  }, [params.id, fetchAgent, fetchReviews]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      // Check if user is admin
+      fetch(`/api/users/profile/${address}`)
+        .then(res => res.json())
+        .then(user => {
+          setIsAdmin(user.isAdmin || false);
+        })
+        .catch(() => setIsAdmin(false));
+    }
+  }, [isConnected, address]);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,6 +165,45 @@ export default function AgentPage() {
       toast.error('Failed to submit review');
     } finally {
       setReviewLoading(false);
+    }
+  };
+
+  const handleDeployAgent = async () => {
+    if (!isConnected || !address) {
+      toast.error('Please connect your wallet to deploy this agent');
+      return;
+    }
+
+    setIsDeployLoading(true);
+
+    try {
+      const response = await fetch('/api/user-agents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          agentId: agent?.id,
+          userAddress: address,
+        }),
+      });
+
+      if (response.ok) {
+        toast.success('Agent deployed successfully!');
+        fetchAgent(); // Refresh agent data
+      } else {
+        const error = await response.json();
+        if (error.error === 'Agent already deployed by this user') {
+          toast.error('You have already deployed this agent');
+        } else {
+          toast.error(error.error || 'Failed to deploy agent');
+        }
+      }
+    } catch (error) {
+      console.error('Error deploying agent:', error);
+      toast.error('Failed to deploy agent');
+    } finally {
+      setIsDeployLoading(false);
     }
   };
 
@@ -200,7 +254,7 @@ export default function AgentPage() {
         <div className="container mx-auto px-4 py-16 text-center">
           <h1 className="text-3xl font-bold mb-4">Agent Not Found</h1>
           <p className="text-muted-foreground">
-            The agent you're looking for doesn't exist or has been removed.
+                The agent you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
         </div>
       </div>
@@ -239,7 +293,18 @@ export default function AgentPage() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button>Deploy Agent</Button>
+              <Button 
+                onClick={handleDeployAgent} 
+                disabled={isDeployLoading || !isConnected}
+              >
+                {isDeployLoading ? 'Deploying...' : 'Deploy Agent'}
+              </Button>
+                  {isConnected && (address === agent.creator || isAdmin) && (
+                    <Button variant="outline" onClick={() => setShowProofGenerator(!showProofGenerator)}>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Generate Proof {isAdmin && address !== agent.creator && '(Admin)'}
+                    </Button>
+                  )}
               {isConnected && address !== agent.creator && (
                 <Button variant="outline" onClick={() => setShowReviewForm(!showReviewForm)}>
                   <MessageCircle className="h-4 w-4 mr-2" />
@@ -249,6 +314,22 @@ export default function AgentPage() {
             </div>
           </div>
         </div>
+
+            {/* Proof Generator */}
+            {showProofGenerator && isConnected && (address === agent.creator || isAdmin) && (
+          <div className="mb-8">
+            <ProofGenerator 
+              agentId={agent.id} 
+              agentName={agent.agentName}
+              onProofGenerated={(proof) => {
+                console.log('Proof generated:', proof);
+                setShowProofGenerator(false);
+                fetchAgent(); // Refresh to show new proof
+                toast.success('Proof generated and saved!');
+              }}
+            />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -352,7 +433,7 @@ export default function AgentPage() {
                           )}
                           {proof.horizenTxHash && (
                             <a
-                              href={`https://gobi.explorer.horizenlabs.io/tx/${proof.horizenTxHash}`}
+                              href={`https://horizen-explorer-testnet.appchain.base.org/tx/${proof.horizenTxHash}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-600 hover:text-blue-800"
@@ -536,7 +617,7 @@ export default function AgentPage() {
                   )}
                   {latestProof.horizenTxHash && (
                     <a
-                      href={`https://gobi.explorer.horizenlabs.io/tx/${latestProof.horizenTxHash}`}
+                      href={`https://horizen-explorer-testnet.appchain.base.org/tx/${latestProof.horizenTxHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"

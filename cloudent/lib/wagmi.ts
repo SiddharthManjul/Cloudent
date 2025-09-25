@@ -14,16 +14,16 @@ const horizenTestnet = {
   },
   rpcUrls: {
     default: {
-      http: ['https://gobi-testnet.horizenlabs.io/ethv1'],
+      http: ['https://horizen-rpc-testnet.appchain.base.org'],
     },
     public: {
-      http: ['https://gobi-testnet.horizenlabs.io/ethv1'],
+      http: ['https://horizen-rpc-testnet.appchain.base.org'],
     },
   },
   blockExplorers: {
     default: {
       name: 'Horizen Explorer',
-      url: 'https://gobi.explorer.horizenlabs.io',
+      url: 'https://horizen-explorer-testnet.appchain.base.org/',
     },
   },
   testnet: true,
@@ -34,7 +34,7 @@ export const config = getDefaultConfig({
   projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
   chains: [horizenTestnet, sepolia, mainnet],
   transports: {
-    [horizenTestnet.id]: http('https://gobi-testnet.horizenlabs.io/ethv1'),
+    [horizenTestnet.id]: http('https://horizen-rpc-testnet.appchain.base.org'),
     [sepolia.id]: http(),
     [mainnet.id]: http(),
   },

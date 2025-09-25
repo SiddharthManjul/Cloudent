@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import keccak from "keccak"
+import { keccak256 } from "js-sha3"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -11,8 +11,8 @@ export function cn(...inputs: ClassValue[]) {
  * keccak256(keccak256(review))
  */
 export function hashReview(review: string): string {
-  const firstHash = keccak('keccak256').update(review).digest('hex')
-  const secondHash = keccak('keccak256').update(firstHash, 'hex').digest('hex')
+  const firstHash = keccak256(review)
+  const secondHash = keccak256(firstHash)
   return `0x${secondHash}`
 }
 
@@ -55,8 +55,11 @@ export function formatDuration(hours: number): string {
 /**
  * Generate proof ID
  */
-export function generateProofId(agentId: string, timestamp: number): string {
-  return keccak('keccak256').update(`${agentId}-${timestamp}`).digest('hex')
+export function generateProofId(agentId?: string, timestamp?: number): string {
+  if (agentId && timestamp) {
+    return keccak256(`${agentId}-${timestamp}`)
+  }
+  return `proof-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
 }
 
 /**

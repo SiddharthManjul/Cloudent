@@ -190,3 +190,4 @@ After generating proofs, deploy the Solidity verifier:
 - [Circom Documentation](https://docs.circom.io/)
 - [snarkjs Library](https://github.com/iden3/snarkjs)
 - [Groth16 Protocol](https://eprint.iacr.org/2016/260.pdf)
+

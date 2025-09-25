@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount } from 'wagmi';
 import { Button } from './ui/button';
@@ -10,10 +11,38 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@radix-ui/react-dropdown-menu';
-import { User, Bot, Settings } from 'lucide-react';
+import { User, Bot, Settings, Crown } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export function Header() {
   const { address, isConnected } = useAccount();
+  const pathname = usePathname();
+  const [userRole, setUserRole] = useState<'user' | 'creator' | 'admin' | null>(null);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      // Check user role by fetching user data
+      fetch(`/api/users/profile/${address}`)
+        .then(res => res.json())
+        .then(user => {
+          if (user.isAdmin) {
+            setUserRole('admin');
+          } else if (user.createdAgentsCount > 0) {
+            setUserRole('creator');
+          } else {
+            setUserRole('user');
+          }
+        })
+        .catch(() => setUserRole('user'));
+    } else {
+      setUserRole(null);
+    }
+  }, [isConnected, address]);
+
+  const isActivePage = (path: string) => {
+    if (path === '/') return pathname === '/';
+    return pathname.startsWith(path);
+  };
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -27,21 +56,81 @@ export function Header() {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/marketplace" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link 
+              href="/marketplace" 
+              className={`text-sm font-medium transition-colors px-3 py-2 rounded-md ${
+                isActivePage('/marketplace') 
+                  ? 'bg-primary text-primary-foreground' 
+                  : 'hover:text-primary hover:bg-accent'
+              }`}
+            >
               Marketplace
             </Link>
-            <Link href="/register-agent" className="text-sm font-medium hover:text-primary transition-colors">
-              Register Agent
-            </Link>
-            {isConnected && (
-              <>
-                <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
-                  Dashboard
-                </Link>
-                <Link href="/creator-dashboard" className="text-sm font-medium hover:text-primary transition-colors">
-                  Creator Dashboard
-                </Link>
-              </>
+            
+            {isConnected && (userRole === 'creator' || userRole === 'admin') && (
+              <Link 
+                href="/register-agent" 
+                className={`text-sm font-medium transition-colors px-3 py-2 rounded-md ${
+                  isActivePage('/register-agent') 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:text-primary hover:bg-accent'
+                }`}
+              >
+                Register Agent
+              </Link>
+            )}
+            
+            {isConnected && userRole === 'admin' && (
+              <Link 
+                href="/admin-dashboard" 
+                className={`text-sm font-medium transition-colors px-3 py-2 rounded-md ${
+                  isActivePage('/admin-dashboard') 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:text-primary hover:bg-accent'
+                }`}
+              >
+                Admin Dashboard
+              </Link>
+            )}
+            
+            {isConnected && userRole === 'user' && (
+              <Link 
+                href="/dashboard" 
+                className={`text-sm font-medium transition-colors px-3 py-2 rounded-md ${
+                  isActivePage('/dashboard') 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:text-primary hover:bg-accent'
+                }`}
+              >
+                Dashboard
+              </Link>
+            )}
+            
+            {isConnected && (userRole === 'creator' || userRole === 'admin') && (
+              <Link 
+                href="/creator-dashboard" 
+                className={`text-sm font-medium transition-colors px-3 py-2 rounded-md ${
+                  isActivePage('/creator-dashboard') 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:text-primary hover:bg-accent'
+                }`}
+              >
+                Creator Dashboard
+              </Link>
+            )}
+            
+            {isConnected && userRole === 'user' && (
+              <Link 
+                href="/become-creator" 
+                className={`text-sm font-medium transition-colors px-3 py-2 rounded-md flex items-center gap-1 ${
+                  isActivePage('/become-creator') 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:text-primary hover:bg-accent'
+                }`}
+              >
+                <Crown className="h-4 w-4" />
+                Become Creator
+              </Link>
             )}
           </nav>
 
@@ -55,18 +144,33 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-background border rounded-md shadow-lg p-1">
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="flex items-center space-x-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-accent rounded-sm">
-                      <User className="h-4 w-4" />
-                      <span>User Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/creator-dashboard" className="flex items-center space-x-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-accent rounded-sm">
-                      <Bot className="h-4 w-4" />
-                      <span>Creator Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
+                  {userRole === 'user' && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" className="flex items-center space-x-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-accent rounded-sm">
+                        <User className="h-4 w-4" />
+                        <span>User Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  
+                  {userRole === 'creator' && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/creator-dashboard" className="flex items-center space-x-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-accent rounded-sm">
+                        <Bot className="h-4 w-4" />
+                        <span>Creator Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  
+                  {userRole === 'user' && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/become-creator" className="flex items-center space-x-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-accent rounded-sm">
+                        <Crown className="h-4 w-4" />
+                        <span>Become Creator</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  
                   <DropdownMenuItem asChild>
                     <Link href="/settings" className="flex items-center space-x-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-accent rounded-sm">
                       <Settings className="h-4 w-4" />

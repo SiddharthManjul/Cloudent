@@ -4,11 +4,12 @@ import { prisma } from '../../../../../lib/db';
 // GET /api/agents/[id] - Get agent by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const agent = await prisma.agent.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         creatorUser: {
           select: {
@@ -65,15 +66,16 @@ export async function GET(
 // PUT /api/agents/[id] - Update agent
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { agentName, description, keywords, usageDetails, creator } = body;
 
     // Check if agent exists and user is the creator
     const existingAgent = await prisma.agent.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingAgent) {
@@ -91,7 +93,7 @@ export async function PUT(
     }
 
     const updatedAgent = await prisma.agent.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         agentName,
         description,
@@ -120,9 +122,10 @@ export async function PUT(
 // DELETE /api/agents/[id] - Delete agent
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { searchParams } = new URL(request.url);
     const creator = searchParams.get('creator');
 
@@ -135,7 +138,7 @@ export async function DELETE(
 
     // Check if agent exists and user is the creator
     const existingAgent = await prisma.agent.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!existingAgent) {
@@ -153,7 +156,7 @@ export async function DELETE(
     }
 
     await prisma.agent.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Agent deleted successfully' });

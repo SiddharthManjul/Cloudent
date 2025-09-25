@@ -201,7 +201,7 @@ export default function Home() {
                 The first AI agent marketplace with cryptographically verifiable reputation powered by zero-knowledge proofs.
               </p>
               <div className="flex space-x-4">
-                <a href="https://gobi.explorer.horizenlabs.io" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white flex items-center space-x-1">
+                <a href="https://horizen-explorer-testnet.appchain.base.org/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white flex items-center space-x-1">
                   <ExternalLink className="h-4 w-4" />
                   <span>Horizen Explorer</span>
                 </a>
